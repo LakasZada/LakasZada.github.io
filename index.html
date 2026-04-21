@@ -271,9 +271,6 @@
   @keyframes blink { 50% { opacity: 0; } }
 </style>
 
-<link rel="stylesheet" href="https://unpkg.com/clippyjs@latest/build/clippy.css">
-<script src="https://unpkg.com/clippyjs@latest/build/clippy.min.js"></script>
-
 <div class="site" onclick="registerClick()">
   <div class="marquee-bar">
     <span class="marquee-inner">&nbsp;&nbsp;&nbsp;★ WELCOME TO LAKASZADA's PAGE ★ &nbsp;&nbsp;&nbsp; Last updated: 2026/4/19 &nbsp;&nbsp;&nbsp; WWW.YPAC.LT &nbsp;&nbsp;&nbsp;</span>
@@ -390,10 +387,14 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+  import { initAgent } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/index.mjs';
+  import { Clippy } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/agents/index.mjs';
+
   let clicks = 0;
 
-  fetch('https://api.counterapi.dev/v1/ypaclt/visits/up', {mode: 'cors'})
+  // Visitor counter
+  fetch('https://api.counterapi.dev/v1/ypaclt/visits/up')
     .then(r => r.json())
     .then(data => {
       document.getElementById('counter').textContent = String(data.count).padStart(6, '0');
@@ -404,19 +405,22 @@
       document.getElementById('counter-label').textContent = 'counter offline';
     });
 
-  function registerClick() {
+  // Click counter
+  window.registerClick = function() {
     clicks++;
     document.getElementById('clicks').textContent = String(clicks).padStart(6, '0');
-  }
+  };
 
-  function showPage(name, el) {
+  // Navigation
+  window.showPage = function(name, el) {
     event.stopPropagation();
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + name).classList.add('active');
     el.classList.add('active');
-  }
+  };
 
+  // Clock
   function updateClock() {
     const pad = n => String(n).padStart(2, '0');
     const now = new Date();
@@ -426,7 +430,8 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  function signGuestbook(e) {
+  // Guestbook
+  window.signGuestbook = function(e) {
     e.stopPropagation();
     const name = document.getElementById('gb-name').value.trim();
     const msg = document.getElementById('gb-msg').value.trim();
@@ -441,14 +446,14 @@
     entries.insertBefore(div, entries.firstChild);
     document.getElementById('gb-name').value = '';
     document.getElementById('gb-msg').value = '';
-  }
-
-  window.onload = function() {
-    if (typeof clippy !== 'undefined') {
-      clippy.load('Clippy', function(agent) {
-        agent.show();
-        agent.speak('Welcome to ypac.lt!');
-      });
-    }
   };
+
+  // Clippy
+  try {
+    const agent = await initAgent(Clippy);
+    agent.show();
+    agent.speak('Welcome to ypac.lt!');
+  } catch(e) {
+    console.log('Clippy failed:', e);
+  }
 </script>
