@@ -1,0 +1,459 @@
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #000080; }
+
+  .site {
+    background: #000080;
+    color: #ffff00;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    border: 4px ridge #c0c0c0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .marquee-bar {
+    background: #4d0080;
+    border-bottom: 2px solid #ff6600;
+    border-top: 2px solid #ff6600;
+    padding: 4px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .marquee-inner {
+    display: inline-block;
+    animation: scroll 22s linear infinite;
+    font-size: 13px;
+    font-weight: bold;
+    color: #ff6600;
+    text-shadow: 0 0 6px #ff6600;
+  }
+  @keyframes scroll { 0% { transform: translateX(760px); } 100% { transform: translateX(-100%); } }
+
+  .main-layout {
+    display: grid;
+    grid-template-columns: 175px 1fr;
+    flex: 1;
+  }
+
+  .sidebar {
+    background: #0d0020;
+    border-right: 3px ridge #c0c0c0;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sidebar-box {
+    background: #000000;
+    border: 2px inset #c0c0c0;
+    padding: 8px;
+    text-align: center;
+  }
+  .sidebar-title {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    color: #ff00ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px dashed #ff00ff;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 5px #ff00ff;
+  }
+
+  .counter-display {
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff6600;
+    background: #111;
+    border: 2px inset #555;
+    padding: 3px 6px;
+    letter-spacing: 4px;
+    display: inline-block;
+    margin: 3px 0;
+    text-shadow: 0 0 8px #ff6600;
+  }
+  .click-display {
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff00ff;
+    background: #111;
+    border: 2px inset #555;
+    padding: 3px 6px;
+    letter-spacing: 4px;
+    display: inline-block;
+    margin: 3px 0;
+    text-shadow: 0 0 8px #ff00ff;
+  }
+  .counter-label {
+    font-size: 9px;
+    color: #cc99ff;
+    font-family: Arial, sans-serif;
+    margin-top: 2px;
+  }
+
+  .nav-link {
+    display: block;
+    background: #3d0066;
+    color: #ff66ff;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 5px;
+    border: 2px outset #c0c0c0;
+    cursor: pointer;
+    margin-bottom: 3px;
+    text-shadow: 0 0 4px #ff00ff;
+    text-decoration: none;
+  }
+  .nav-link:hover { background: #ff00ff; color: #000; border: 2px inset #333; box-shadow: 0 0 8px #ff00ff; }
+  .nav-link.active { background: #220044; border: 2px inset #333; color: #ff66ff; }
+
+  .clock-display {
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    color: #ff66ff;
+    text-shadow: 0 0 6px #ff00ff;
+  }
+
+  .content {
+    padding: 14px 18px;
+    background: #000080;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .page { display: none; flex-direction: column; gap: 10px; }
+  .page.active { display: flex; }
+
+  .page-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #ff69b4;
+    text-align: center;
+    text-shadow: 3px 3px 0 #cc0000, -1px -1px 0 #ffff00;
+    font-family: Impact, Arial Black, sans-serif;
+    letter-spacing: 2px;
+  }
+  .page-subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: #ff66ff;
+    font-family: Arial, sans-serif;
+    font-style: italic;
+    margin-top: -4px;
+    text-shadow: 0 0 5px #ff00ff;
+  }
+
+  .divider {
+    height: 4px;
+    background: repeating-linear-gradient(90deg, #ff6600 0,#ff6600 10px,#ff00ff 10px,#ff00ff 20px,#9900cc 20px,#9900cc 30px);
+    box-shadow: 0 0 6px #ff00ff;
+  }
+
+  .construction {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #000000;
+    color: #6aff00;
+    font-weight: bold;
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    padding: 6px 10px;
+    border: 2px solid #ff6600;
+    box-shadow: 0 0 8px #ff660044;
+    text-shadow: 0 0 6px #061f00;
+  }
+
+  .content-box {
+    background: #0d0020;
+    border: 2px inset #c0c0c0;
+    padding: 12px;
+    color: #ffccff;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .content-box h3 {
+    color: #ff6600;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-family: Arial, sans-serif;
+    border-bottom: 1px dashed #ff6600;
+    padding-bottom: 4px;
+    text-shadow: 0 0 6px #ff6600;
+  }
+
+  .star-row {
+    color: #ff6600;
+    letter-spacing: 3px;
+    font-size: 13px;
+    text-align: center;
+    text-shadow: 0 0 5px #ff6600;
+  }
+
+  .link-item { padding: 3px 0; }
+  .link-item a {
+    color: #ff66ff;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+  }
+  .link-item a:hover { color: #ff00ff; text-shadow: 0 0 6px #ff00ff; }
+
+  .guestbook-section {
+    background: #0d0020;
+    border: 2px inset #c0c0c0;
+    padding: 10px;
+  }
+  .guestbook-section h3 {
+    color: #ff66ff;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    margin-bottom: 8px;
+    text-shadow: 0 0 5px #ff00ff;
+  }
+  .gb-input {
+    width: 100%;
+    background: #000033;
+    color: #ff66ff;
+    border: 2px inset #888;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    padding: 4px 6px;
+    margin-bottom: 5px;
+    outline: none;
+  }
+  .gb-input:focus { border-color: #ff00ff; }
+  .gb-input::placeholder { color: #660066; }
+  .gb-btn {
+    background: #3d0066;
+    color: #ff66ff;
+    border: 2px outset #c0c0c0;
+    font-weight: bold;
+    font-size: 11px;
+    font-family: Arial, sans-serif;
+    padding: 3px 14px;
+    cursor: pointer;
+    float: right;
+    text-shadow: 0 0 4px #ff00ff;
+  }
+  .gb-btn:hover { background: #ff00ff; color: #000; border: 2px inset #333; }
+
+  .entries { margin-top: 8px; clear: both; max-height: 110px; overflow-y: auto; }
+  .entry { border-bottom: 1px dashed #330044; padding: 5px 0; font-size: 11px; font-family: Arial, sans-serif; color: #cc99ff; }
+  .entry-name { color: #ff6600; font-weight: bold; text-shadow: 0 0 4px #ff6600; }
+  .entry-date { color: #660066; font-size: 10px; }
+
+  .contact-box {
+    background: #0d0020;
+    border: 2px inset #c0c0c0;
+    padding: 16px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #ffccff;
+    line-height: 2;
+  }
+
+  .blink { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+
+<div class="site" onclick="registerClick()">
+  <div class="marquee-bar">
+    <span class="marquee-inner">&nbsp;&nbsp;&nbsp;★ WELCOME TO LAKASZADA's PAGE ★ &nbsp;&nbsp;&nbsp; Last updated: 2026/4/19 &nbsp;&nbsp;&nbsp; WWW.YPAC.LT &nbsp;&nbsp;&nbsp;</span>
+  </div>
+
+  <div class="main-layout">
+    <div class="sidebar">
+      <div class="sidebar-box">
+        <div class="sidebar-title">Visitors</div>
+        <div class="counter-display" id="counter">000000</div>
+        <div class="counter-label" id="counter-label">loading...</div>
+      </div>
+
+      <div class="sidebar-box">
+        <div class="sidebar-title">Page Clicks</div>
+        <div class="click-display" id="clicks">000000</div>
+        <div class="counter-label">total clicks!</div>
+      </div>
+
+      <div class="sidebar-box">
+        <div class="sidebar-title">Navigate</div>
+        <a class="nav-link active" onclick="showPage('home',this)">Home</a>
+        <a class="nav-link" onclick="showPage('about',this)">About</a>
+        <a class="nav-link" onclick="showPage('links',this)">Links</a>
+        <a class="nav-link" onclick="showPage('guestbook',this)">Guestbook</a>
+      </div>
+
+      <div class="sidebar-box">
+        <div class="sidebar-title">Clock</div>
+        <div class="clock-display" id="clock">00:00:00</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- HOME -->
+      <div class="page active" id="page-home">
+        <div class="page-title">★ LakasZada ★</div>
+        <div class="page-subtitle">~ welcome to my little corner of the internet ~</div>
+        <div class="divider"></div>
+        <div class="construction">🚧 UNDER CONSTRUCTION!!!🚧</div>
+        <div class="star-row">★ ★ ★ ★ ★ ★ ★ ★ ★ ★</div>
+        <div class="content-box">
+          <h3>Welcome!</h3>
+          <p>Hiiii! Welcome to <span style="color:#6aff00;font-weight:bold;text-shadow:0 0 5px #59ff00;">my ultimate hacker page</span>! I made this page using VS code!</p>
+          <p style="font-size:5">i did use a template tho idk dont matter</p>
+          <br>
+          <p>Use the links on the left to explore my site. Sign my guestbook while you're here!!</p>
+          <br>
+          <p><span class="blink" style="color:#6aff00;font-weight:bold;">★ NEW ★</span> <span style="color:#ff66ff;">More stuuf coming soon!!</span></p>
+        </div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="page" id="page-about">
+        <div class="page-title">★ About Me ★</div>
+        <div class="divider"></div>
+        <div class="content-box">
+          <h3>Who am I?</h3>
+          <p>Hi!! I'm the <span style="color:#6aff00;font-weight:bold;">webmaster</span> LakasZada!</p>
+          <br>
+          <p>I love the internet, music, and cookies.</p>
+          <br>
+          <p>I update this page whenever I feel like it, so check back often!!</p>
+        </div>
+        <div class="content-box">
+          <h3>My Interests</h3>
+          <p>
+            <span style="color:#6fff00;">★</span> Cookies<br>
+            <span style="color:#6fff00;">★</span> Surfing the web<br>
+            <span style="color:#6fff00;">★</span> Video games<br>
+            <span style="color:#6fff00;">★</span> Making websites!!
+          </p>
+        </div>
+        <div class="content-box">
+          <h3>I have a Minecraft server</h3>
+          <p>so it is under development and will be made soon</p>
+          <br>
+          <p>name: LZ's SERVER</p>
+          <p>ip: mc.ypac.lt</p>
+          <br>
+          <p>Will update if it works!</p>
+        </div>
+      </div>
+
+      <!-- LINKS -->
+      <div class="page" id="page-links">
+        <div class="page-title">★ Cool Links ★</div>
+        <div class="divider"></div>
+        <div class="content-box">
+          <h3>Some Kewl Sites</h3>
+          <div class="link-item"><span style="color:#6fff00;">→</span> <a href="https://www.geocities.ws" target="_blank">GeoCities Archive</a></div>
+          <div class="link-item"><span style="color:#6aff00;">→</span> <a href="https://web.archive.org" target="_blank">Wayback Machine</a></div>
+          <div class="link-item"><span style="color:#6fff00;">→</span> <a href="https://www.spacejam.com" target="_blank">Space Jam Official Site</a></div>
+        </div>
+      </div>
+
+      <!-- GUESTBOOK -->
+      <div class="page" id="page-guestbook">
+        <div class="page-title">★ GuestBook ★</div>
+        <div class="divider"></div>
+        <div class="guestbook-section">
+          <h3>Sign My Guestbook!</h3>
+          <input class="gb-input" type="text" id="gb-name" placeholder="Your name..." />
+          <input class="gb-input" type="text" id="gb-msg" placeholder="Leave a message!" />
+          <button class="gb-btn" onclick="signGuestbook(event)">Sign! →</button>
+          <div class="entries" id="entries">
+            <div class="entry"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initAgent } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/index.mjs';
+  import { Clippy } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/agents/index.mjs';
+
+  let clicks = 0;
+
+  // Visitor counter
+  fetch('https://api.counterapi.dev/v1/ypaclt/visits/up')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('counter').textContent = String(data.count).padStart(6, '0');
+      document.getElementById('counter-label').textContent = 'you are visitor #' + data.count + '!';
+    })
+    .catch(() => {
+      document.getElementById('counter').textContent = '000001';
+      document.getElementById('counter-label').textContent = 'counter offline';
+    });
+
+  // Click counter
+  window.registerClick = function() {
+    clicks++;
+    document.getElementById('clicks').textContent = String(clicks).padStart(6, '0');
+  };
+
+  // Navigation
+  window.showPage = function(name, el) {
+    event.stopPropagation();
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    el.classList.add('active');
+  };
+
+  // Clock
+  function updateClock() {
+    const pad = n => String(n).padStart(2, '0');
+    const now = new Date();
+    const el = document.getElementById('clock');
+    if (el) el.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Guestbook
+  window.signGuestbook = function(e) {
+    e.stopPropagation();
+    const name = document.getElementById('gb-name').value.trim();
+    const msg = document.getElementById('gb-msg').value.trim();
+    if (!name || !msg) return;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now = new Date();
+    const dateStr = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+    const div = document.createElement('div');
+    div.className = 'entry';
+    div.innerHTML = '<span class="entry-name">' + name + '</span> <span class="entry-date">— ' + dateStr + '</span><br>' + msg;
+    const entries = document.getElementById('entries');
+    entries.insertBefore(div, entries.firstChild);
+    document.getElementById('gb-name').value = '';
+    document.getElementById('gb-msg').value = '';
+  };
+
+  // Clippy
+  try {
+    const agent = await initAgent(Clippy);
+    agent.show();
+    agent.speak('Welcome to ypac.lt!');
+  } catch(e) {
+    console.log('Clippy failed:', e);
+  }
+</script>
