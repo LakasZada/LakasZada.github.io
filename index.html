@@ -425,7 +425,7 @@
       } catch(e) { /* try next */ }
     }
     // All APIs failed — show a fun fake count stored in sessionStorage so it at least increments per visit
-    let fake = parseInt(sessionStorage.getItem('vc') || '31337') + 1;
+    let fake = parseInt(sessionStorage.getItem('vc') || '31') + 1;
     sessionStorage.setItem('vc', fake);
     document.getElementById('counter').textContent = String(fake).padStart(6, '0');
     document.getElementById('counter-label').textContent = 'you are visitor #' + fake + '!';
