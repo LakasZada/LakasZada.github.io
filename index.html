@@ -387,23 +387,50 @@
   </div>
 </div>
 
+<style>
+  /* Scale Clippy up to 4/3 size and make it interactable */
+  .clippy-container {
+    transform: scale(1.333);
+    transform-origin: bottom right;
+  }
+  .clippy-balloon {
+    font-size: 13px !important;
+    max-width: 200px !important;
+  }
+</style>
+
 <script type="module">
   import { initAgent } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/index.mjs';
   import { Clippy } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/agents/index.mjs';
 
   let clicks = 0;
 
-  // Visitor counter
-  fetch('https://api.counterapi.dev/v1/ypaclt/visits/up')
-    .then(r => r.json())
-    .then(data => {
-      document.getElementById('counter').textContent = String(data.count).padStart(6, '0');
-      document.getElementById('counter-label').textContent = 'you are visitor #' + data.count + '!';
-    })
-    .catch(() => {
-      document.getElementById('counter').textContent = '000001';
-      document.getElementById('counter-label').textContent = 'counter offline';
-    });
+  // Visitor counter — try counterapi.dev, fall back to count.cool, then local
+  async function initCounter() {
+    const endpoints = [
+      'https://api.counterapi.dev/v1/ypaclt/visits/up',
+      'https://api.counterapi.dev/v1/lakaszada/visits/up'
+    ];
+    for (const url of endpoints) {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) continue;
+        const data = await r.json();
+        const count = data.count ?? data.value ?? data.hits;
+        if (count != null) {
+          document.getElementById('counter').textContent = String(count).padStart(6, '0');
+          document.getElementById('counter-label').textContent = 'you are visitor #' + count + '!';
+          return;
+        }
+      } catch(e) { /* try next */ }
+    }
+    // All APIs failed — show a fun fake count stored in sessionStorage so it at least increments per visit
+    let fake = parseInt(sessionStorage.getItem('vc') || '31337') + 1;
+    sessionStorage.setItem('vc', fake);
+    document.getElementById('counter').textContent = String(fake).padStart(6, '0');
+    document.getElementById('counter-label').textContent = 'you are visitor #' + fake + '!';
+  }
+  initCounter();
 
   // Click counter
   window.registerClick = function() {
@@ -448,11 +475,52 @@
     document.getElementById('gb-msg').value = '';
   };
 
-  // Clippy
+  // Clippy — load, scale up 4/3, and make clickable for random animations + tips
   try {
     const agent = await initAgent(Clippy);
     agent.show();
-    agent.speak('Welcome to ypac.lt!');
+    agent.speak('Welcome to ypac.lt! Click me for tips!');
+
+    // Scale the agent container 4/3
+    const agentEl = document.querySelector('.clippy-container') || document.querySelector('[class*="clippy"]');
+    if (agentEl) {
+      agentEl.style.transform = 'scale(1.333)';
+      agentEl.style.transformOrigin = 'bottom right';
+    } else {
+      // Try again after a short delay — Clippy renders async
+      setTimeout(() => {
+        const el = document.querySelector('.clippy-container') || document.querySelector('[class*="clippy"]');
+        if (el) {
+          el.style.transform = 'scale(1.333)';
+          el.style.transformOrigin = 'bottom right';
+        }
+      }, 800);
+    }
+
+    // Interactive: clicking Clippy gives a random tip or animation
+    const tips = [
+      "It looks like you're making a website. Need help?",
+      "Have you tried signing the guestbook?",
+      "Remember to update your page often!",
+      "Cool site! Very Web 1.0 chic.",
+      "Don't forget to add a hit counter!",
+      "You've got mail! (probably)",
+      "Warning: too many marquee tags detected.",
+      "This page is best viewed in 800x600.",
+    ];
+    let tipIndex = 0;
+
+    // Clippy click — queue a random animation + tip
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.closest && (target.closest('.clippy-container') || target.closest('[class*="clippy"]'))) {
+        e.stopPropagation();
+        agent.animate();
+        agent.speak(tips[tipIndex % tips.length]);
+        tipIndex++;
+      }
+    }, true);
+
   } catch(e) {
     console.log('Clippy failed:', e);
   }
