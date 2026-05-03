@@ -252,19 +252,62 @@
   }
   .gb-btn:hover { background: #ff00ff; color: #000; border: 2px inset #333; }
 
-  .entries { margin-top: 8px; clear: both; max-height: 110px; overflow-y: auto; }
+  .gb-status {
+    font-size: 10px;
+    font-family: Arial, sans-serif;
+    margin-top: 4px;
+    clear: both;
+    padding-top: 4px;
+    min-height: 16px;
+  }
+  .gb-status.pending { color: #ff6600; }
+  .gb-status.sent { color: #6aff00; }
+
+  .entries { margin-top: 8px; clear: both; max-height: 160px; overflow-y: auto; }
   .entry { border-bottom: 1px dashed #330044; padding: 5px 0; font-size: 11px; font-family: Arial, sans-serif; color: #cc99ff; }
   .entry-name { color: #ff6600; font-weight: bold; text-shadow: 0 0 4px #ff6600; }
   .entry-date { color: #660066; font-size: 10px; }
+  .entry-pending { color: #ff6600; font-size: 9px; font-style: italic; }
 
-  .contact-box {
+  .log-entry {
     background: #0d0020;
     border: 2px inset #c0c0c0;
-    padding: 16px;
+    border-left: 4px solid #ff6600;
+    padding: 10px 12px;
     font-family: Arial, sans-serif;
     font-size: 13px;
     color: #ffccff;
-    line-height: 2;
+    line-height: 1.7;
+  }
+  .log-date {
+    color: #ff6600;
+    font-weight: bold;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px #ff6600;
+    margin-bottom: 4px;
+  }
+  .log-version {
+    display: inline-block;
+    background: #3d0066;
+    color: #ff66ff;
+    font-size: 10px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    padding: 1px 6px;
+    border: 1px solid #ff00ff;
+    margin-bottom: 6px;
+    text-shadow: 0 0 4px #ff00ff;
+  }
+  .log-empty {
+    background: #0d0020;
+    border: 2px inset #c0c0c0;
+    padding: 20px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #660066;
+    font-style: italic;
   }
 
   .blink { animation: blink 1s step-end infinite; }
@@ -296,6 +339,7 @@
         <a class="nav-link" onclick="showPage('about',this)">About</a>
         <a class="nav-link" onclick="showPage('links',this)">Links</a>
         <a class="nav-link" onclick="showPage('guestbook',this)">Guestbook</a>
+        <a class="nav-link" onclick="showPage('logs',this)">Logs</a>
       </div>
 
       <div class="sidebar-box">
@@ -377,10 +421,24 @@
           <input class="gb-input" type="text" id="gb-name" placeholder="Your name..." />
           <input class="gb-input" type="text" id="gb-msg" placeholder="Leave a message!" />
           <button class="gb-btn" onclick="signGuestbook(event)">Sign! →</button>
-          <div class="entries" id="entries">
-            <div class="entry"></div>
-          </div>
+          <div class="gb-status" id="gb-status"></div>
+          <div class="entries" id="entries"></div>
         </div>
+      </div>
+
+      <!-- LOGS -->
+      <div class="page" id="page-logs">
+        <div class="page-title">★ Site Logs ★</div>
+        <div class="page-subtitle">~ what changed and when ~</div>
+        <div class="divider"></div>
+        <div class="log-empty">no logs yet... check back soon!!</div>
+        <!-- Add log entries here like this:
+        <div class="log-entry">
+          <div class="log-date">2026-04-19</div>
+          <div class="log-version">v1.1</div>
+          <p>Added logs page and guestbook backend</p>
+        </div>
+        -->
       </div>
 
     </div>
@@ -388,24 +446,23 @@
 </div>
 
 <style>
-  /* Scale Clippy up to 4/3 size and make it interactable */
-  .clippy-container {
-    transform: scale(1.333);
-    transform-origin: bottom right;
-  }
-  .clippy-balloon {
-    font-size: 13px !important;
-    max-width: 200px !important;
-  }
+  .clippy-container { transform: scale(1.333); transform-origin: bottom right; }
+  .clippy-balloon { font-size: 13px !important; max-width: 200px !important; }
 </style>
 
 <script type="module">
   import { initAgent } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/index.mjs';
   import { Clippy } from 'https://cdn.jsdelivr.net/npm/clippyjs/dist/agents/index.mjs';
 
+  // ---- Set this once your backend is running ----
+  const API_URL = 'https://api.ypac.lt/guestbook';
+  // ------------------------------------------------
+
+  const STORAGE_KEY = 'gb_entries';
+  const QUEUE_KEY   = 'gb_queue';
   let clicks = 0;
 
-  // Visitor counter — try counterapi.dev, fall back to count.cool, then local
+  // Visitor counter
   async function initCounter() {
     const endpoints = [
       'https://api.counterapi.dev/v1/ypaclt/visits/up',
@@ -422,9 +479,8 @@
           document.getElementById('counter-label').textContent = 'you are visitor #' + count + '!';
           return;
         }
-      } catch(e) { /* try next */ }
+      } catch(e) {}
     }
-    // All APIs failed — show a fun fake count stored in sessionStorage so it at least increments per visit
     let fake = parseInt(sessionStorage.getItem('vc') || '31') + 1;
     sessionStorage.setItem('vc', fake);
     document.getElementById('counter').textContent = String(fake).padStart(6, '0');
@@ -432,13 +488,11 @@
   }
   initCounter();
 
-  // Click counter
   window.registerClick = function() {
     clicks++;
     document.getElementById('clicks').textContent = String(clicks).padStart(6, '0');
   };
 
-  // Navigation
   window.showPage = function(name, el) {
     event.stopPropagation();
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -447,7 +501,6 @@
     el.classList.add('active');
   };
 
-  // Clock
   function updateClock() {
     const pad = n => String(n).padStart(2, '0');
     const now = new Date();
@@ -457,47 +510,109 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Guestbook
+  // Guestbook helpers
+  const getEntries = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } };
+  const saveEntries = e => localStorage.setItem(STORAGE_KEY, JSON.stringify(e));
+  const getQueue   = () => { try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch { return []; } };
+  const saveQueue  = q => localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+
+  function renderEntries() {
+    const entries = getEntries();
+    const queue   = getQueue();
+    const container = document.getElementById('entries');
+    container.innerHTML = '';
+
+    queue.forEach(e => {
+      const div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = `<span class="entry-name">${e.name}</span> <span class="entry-date">— ${e.date}</span> <span class="entry-pending">(sending...)</span><br>${e.msg}`;
+      container.appendChild(div);
+    });
+
+    entries.forEach(e => {
+      const div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = `<span class="entry-name">${e.name}</span> <span class="entry-date">— ${e.date}</span><br>${e.msg}`;
+      container.appendChild(div);
+    });
+
+    if (!entries.length && !queue.length) {
+      container.innerHTML = '<div class="entry" style="color:#660066;font-style:italic;">no entries yet — be the first!</div>';
+    }
+  }
+
+  async function flushQueue() {
+    const queue = getQueue();
+    if (!queue.length) return;
+    const remaining = [];
+    for (const entry of queue) {
+      try {
+        const r = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry),
+          signal: AbortSignal.timeout(4000)
+        });
+        if (r.ok) {
+          const entries = getEntries();
+          entries.unshift(entry);
+          saveEntries(entries);
+        } else {
+          remaining.push(entry);
+        }
+      } catch {
+        remaining.push(entry);
+      }
+    }
+    saveQueue(remaining);
+    renderEntries();
+
+    const statusEl = document.getElementById('gb-status');
+    if (statusEl && remaining.length < queue.length) {
+      statusEl.textContent = '✓ queued entries sent!';
+      statusEl.className = 'gb-status sent';
+      setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    }
+  }
+
+  renderEntries();
+  flushQueue();
+
   window.signGuestbook = function(e) {
     e.stopPropagation();
     const name = document.getElementById('gb-name').value.trim();
-    const msg = document.getElementById('gb-msg').value.trim();
+    const msg  = document.getElementById('gb-msg').value.trim();
     if (!name || !msg) return;
+
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const now = new Date();
-    const dateStr = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
-    const div = document.createElement('div');
-    div.className = 'entry';
-    div.innerHTML = '<span class="entry-name">' + name + '</span> <span class="entry-date">— ' + dateStr + '</span><br>' + msg;
-    const entries = document.getElementById('entries');
-    entries.insertBefore(div, entries.firstChild);
+    const entry = { name, msg, date: months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear(), ts: now.toISOString() };
+
+    const queue = getQueue();
+    queue.unshift(entry);
+    saveQueue(queue);
+    renderEntries();
+
     document.getElementById('gb-name').value = '';
-    document.getElementById('gb-msg').value = '';
+    document.getElementById('gb-msg').value  = '';
+
+    const statusEl = document.getElementById('gb-status');
+    statusEl.textContent = 'saved! will send to server when online...';
+    statusEl.className = 'gb-status pending';
+
+    flushQueue();
   };
 
-  // Clippy — load, scale up 4/3, and make clickable for random animations + tips
+  // Clippy
   try {
     const agent = await initAgent(Clippy);
     agent.show();
     agent.speak('Welcome to ypac.lt! Click me for tips!');
+    setTimeout(() => {
+      const el = document.querySelector('.clippy-container') || document.querySelector('[class*="clippy"]');
+      if (el) { el.style.transform = 'scale(1.333)'; el.style.transformOrigin = 'bottom right'; }
+    }, 800);
 
-    // Scale the agent container 4/3
-    const agentEl = document.querySelector('.clippy-container') || document.querySelector('[class*="clippy"]');
-    if (agentEl) {
-      agentEl.style.transform = 'scale(1.333)';
-      agentEl.style.transformOrigin = 'bottom right';
-    } else {
-      // Try again after a short delay — Clippy renders async
-      setTimeout(() => {
-        const el = document.querySelector('.clippy-container') || document.querySelector('[class*="clippy"]');
-        if (el) {
-          el.style.transform = 'scale(1.333)';
-          el.style.transformOrigin = 'bottom right';
-        }
-      }, 800);
-    }
-
-    // Interactive: clicking Clippy gives a random tip or animation
     const tips = [
       "It looks like you're making a website. Need help?",
       "Have you tried signing the guestbook?",
@@ -509,19 +624,13 @@
       "This page is best viewed in 800x600.",
     ];
     let tipIndex = 0;
-
-    // Clippy click — queue a random animation + tip
     document.addEventListener('click', (e) => {
-      const target = e.target;
-      if (target.closest && (target.closest('.clippy-container') || target.closest('[class*="clippy"]'))) {
+      const t = e.target;
+      if (t.closest && (t.closest('.clippy-container') || t.closest('[class*="clippy"]'))) {
         e.stopPropagation();
         agent.animate();
-        agent.speak(tips[tipIndex % tips.length]);
-        tipIndex++;
+        agent.speak(tips[tipIndex++ % tips.length]);
       }
     }, true);
-
-  } catch(e) {
-    console.log('Clippy failed:', e);
-  }
+  } catch(e) { console.log('Clippy failed:', e); }
 </script>
