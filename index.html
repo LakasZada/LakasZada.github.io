@@ -578,6 +578,18 @@
   renderEntries();
   flushQueue();
 
+// Fetch all entries from server
+async function loadServerEntries() {
+  try {
+    const r = await fetch(API_URL, { signal: AbortSignal.timeout(4000) });
+    if (!r.ok) return;
+    const serverEntries = await r.json();
+    saveEntries(serverEntries);
+    renderEntries();
+  } catch {}
+}
+loadServerEntries();
+
   window.signGuestbook = function(e) {
     e.stopPropagation();
     const name = document.getElementById('gb-name').value.trim();
