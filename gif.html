@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🛑 YOU PRESSED IT!</title>
+  <style>
+    /* Completely separate dark layout - no sidebars, no extra style */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #000;
+    }
+
+    /* Enforces your strict 3:4 aspect ratio window box */
+    .gif-box {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 3 / 4;
+      cursor: pointer;
+      border: 4px ridge red;
+      background: none;
+      padding: 0;
+    }
+
+    .gif-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Click it to manually download again -->
+  <button class="gif-box" onclick="downloadFile()">
+    <img id="downloadTarget" src="data:image/gif;base64,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_f">
+  </button>
+
+  <script>
+    function downloadFile() {
+      const dataStr = document.getElementById('downloadTarget').src;
+      const link = document.createElement('a');
+      link.href = dataStr;
+      link.download = 'lakaszada_secret.gif';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    // Fires download completely independently on page mount
+    window.onload = function() {
+      downloadFile();
+    };
+  </script>
+
+</body>
+</html>
